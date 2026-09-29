@@ -1,0 +1,66 @@
+# FleetPulse Simulator: Offline Training Configuration (Phase 3)
+population:
+  vehicles: 500
+  tenants: 2
+  fleets_per_tenant: 3
+  vehicle_types:
+    ICE: 0.50
+    EV: 0.30
+    HYBRID: 0.20
+  driving_profiles:
+    CITY: 0.35
+    HIGHWAY: 0.25
+    MIXED: 0.40
+  oem: "OEM_A"
+  home_center: [13.0827, 80.2707]
+  home_radius_km: 25
+
+clock:
+  start_time: "2026-01-01T00:00:00Z"
+  step_seconds: 60
+  parked_heartbeat_seconds: 900
+  days: 90
+  emit_interval_seconds: 1.0
+
+degradation:
+  scale: 1.0
+  thresholds:
+    healthy_min: 75
+    degrading_min: 50
+    at_risk_min: 25
+  # Per-component multiplier on the wear increment, calibrated in Phase 4 Part A2
+  # (docs/phase3-calibration.md). Measured mean wear gain at scale 1: BRAKE 0.23,
+  # POWERTRAIN 0.11, BATTERY 0.85 per day (the battery also ages while parked).
+  component_scale:
+    BRAKE: 1.1
+    POWERTRAIN: 1.45
+    BATTERY: 0.25
+  base_wear_per_hour:
+    BRAKE: 0.05
+    POWERTRAIN: 0.045
+    BATTERY: 0.035
+  # Sudden-failure hazard per exposure hour while AT_RISK. The battery is exposed 24 h/day,
+  # the others only while driving (about 2.4 h/day), hence the lower battery rate.
+  sudden_failure_per_hour_at_risk:
+    BRAKE: 0.00018
+    POWERTRAIN: 0.00018
+    BATTERY: 0.000015
+  service_delay_hours: [24, 72]
+  service_recovery_factor: [0.15, 0.25]
+  # Wear since the last service at the start of the run. Serviced components restart at
+  # 15-25 % of the wear at service (about 11-19), then drift to the threshold (75), so the
+  # steady state is roughly uniform on [12, 75). Starting there keeps the event rate
+  # stationary over the run instead of ramping up from zero.
+  initial_wear_min: 12
+  initial_wear_max: 74.5
+  wear_rate_lognormal_sigma: 0.3
+  # Observable effect sizes (see docs/simulator-spec.md)
+  effects:
+    brake_decel_deficit_at_full_wear: 0.35
+    brake_thermal_mass_loss_at_full_wear: 0.5
+    powertrain_temp_offset_per_wear_c: 0.25
+    powertrain_consumption_increase_at_full_wear: 0.15
+    battery_retention_loss_at_full_wear: 0.30
+    battery_resistance_rise_at_full_wear: 1.5
+
+seed: 42

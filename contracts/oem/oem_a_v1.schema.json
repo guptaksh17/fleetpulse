@@ -1,0 +1,128 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fleetpulse.ai/schemas/oem/oem_a_v1.schema.json",
+  "title": "OEMAEventV1",
+  "description": "OEM-A proprietary telemetry event schema format v1.0",
+  "type": "object",
+  "properties": {
+    "vin": {
+      "type": "string",
+      "minLength": 17,
+      "maxLength": 17,
+      "description": "Vehicle Identification Number"
+    },
+    "ts": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 vehicle event timestamp"
+    },
+    "lat": {
+      "type": "number",
+      "minimum": -90.0,
+      "maximum": 90.0,
+      "description": "Latitude coordinate"
+    },
+    "lng": {
+      "type": "number",
+      "minimum": -180.0,
+      "maximum": 180.0,
+      "description": "Longitude coordinate"
+    },
+    "vehicleSpeed": {
+      "type": "number",
+      "minimum": 0.0,
+      "description": "Vehicle ground speed in km/h"
+    },
+    "mileageKm": {
+      "type": "number",
+      "minimum": 0.0,
+      "description": "Cumulative vehicle mileage in km"
+    },
+    "batteryLevel": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 100.0,
+      "description": "Battery state of charge percentage"
+    },
+    "batteryVoltage": {
+      "type": "number",
+      "description": "High voltage battery pack voltage (V)"
+    },
+    "batteryCurrent": {
+      "type": "number",
+      "description": "Battery pack current in Amperes"
+    },
+    "batteryTemp": {
+      "type": "number",
+      "description": "Battery pack temperature in Celsius"
+    },
+    "engineRpm": {
+      "type": ["number", "null"],
+      "description": "Internal combustion engine RPM (null for EV)"
+    },
+    "motorTemperature": {
+      "type": ["number", "null"],
+      "description": "Electric traction motor temperature in Celsius"
+    },
+    "faultCodes": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Array of active diagnostic fault codes"
+    },
+    "longitudinalAccel": {
+      "type": "number",
+      "description": "Longitudinal acceleration in m/s^2"
+    },
+    "event": {
+      "type": "string",
+      "enum": ["TELEMETRY", "HARSH_BRAKE", "DTC"],
+      "description": "Event indicator string, e.g. TELEMETRY, HARSH_BRAKE, or DTC"
+    },
+    "sequence": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Monotonically increasing sequence number"
+    },
+    "engineTemp": {
+      "type": ["number", "null"],
+      "description": "Engine coolant/operating temperature in Celsius"
+    },
+    "engineLoadPct": {
+      "type": ["number", "null"],
+      "minimum": 0.0,
+      "maximum": 100.0,
+      "description": "Internal combustion engine load percentage"
+    },
+    "powerKw": {
+      "type": ["number", "null"],
+      "description": "Powertrain mechanical/electrical power in kW"
+    },
+    "charging": {
+      "type": ["boolean", "null"],
+      "description": "Whether battery pack is actively charging"
+    },
+    "tripRef": {
+      "type": ["string", "null"],
+      "description": "Associated trip reference identifier"
+    }
+  },
+  "required": [
+    "vin",
+    "ts",
+    "lat",
+    "lng",
+    "vehicleSpeed",
+    "mileageKm",
+    "batteryLevel",
+    "batteryVoltage",
+    "batteryCurrent",
+    "batteryTemp",
+    "engineRpm",
+    "motorTemperature",
+    "faultCodes",
+    "longitudinalAccel",
+    "event",
+    "sequence"
+  ],
+  "additionalProperties": false
+}

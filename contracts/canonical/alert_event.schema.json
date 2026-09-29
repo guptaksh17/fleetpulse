@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fleetpulse.ai/schemas/canonical/alert_event.schema.json",
+  "title": "AlertEvent",
+  "description": "Standardized schema for vehicle component alert events published to vehicle.alerts",
+  "type": "object",
+  "properties": {
+    "alert_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier for this alert"
+    },
+    "vehicle_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Internal UUID of the vehicle"
+    },
+    "vehicle_component_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Internal UUID of the specific vehicle component"
+    },
+    "component": {
+      "type": "string",
+      "enum": ["BRAKE", "POWERTRAIN", "BATTERY"],
+      "description": "Vehicle subsystem component"
+    },
+    "alert_type": {
+      "type": "string",
+      "description": "Alert type name, e.g. DTC_BRAKE_SYSTEM_CRITICAL"
+    },
+    "severity": {
+      "type": "string",
+      "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"],
+      "description": "Severity level of the alert"
+    },
+    "source": {
+      "type": "string",
+      "enum": ["RULE", "ML"],
+      "default": "RULE",
+      "description": "Origin of alert detection"
+    },
+    "message": {
+      "type": "string",
+      "description": "Descriptive message explaining the alert condition"
+    },
+    "dtc_code": {
+      "type": "string",
+      "description": "DTC code that triggered the alert"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when alert was detected and persisted"
+    },
+    "trigger_event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Event ID of the triggering telemetry message"
+    },
+    "trigger_event_ts": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp of the triggering telemetry message"
+    }
+  },
+  "required": [
+    "alert_id",
+    "vehicle_id",
+    "vehicle_component_id",
+    "component",
+    "alert_type",
+    "severity",
+    "source",
+    "message",
+    "dtc_code",
+    "created_at",
+    "trigger_event_id",
+    "trigger_event_ts"
+  ],
+  "additionalProperties": false
+}

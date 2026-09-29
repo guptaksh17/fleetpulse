@@ -1,0 +1,27 @@
+# P0301 follows OBD-II naming; all other codes are synthetic project codes and must not be presented as standardized OBD-II codes.
+
+codes:
+  P0301:
+    component: "POWERTRAIN"
+    severity: "CRITICAL"
+    description: "Engine cylinder misfire"
+  P0562:
+    component: "POWERTRAIN"
+    severity: "HIGH"
+    description: "System voltage low"
+  BATT_TEMP_HIGH:
+    component: "BATTERY"
+    severity: "HIGH"
+    description: "Battery temperature above operating range"
+  BATT_VOLT_UNSTABLE:
+    component: "BATTERY"
+    severity: "HIGH"
+    description: "Abnormal battery voltage variation"
+  BRAKE_WEAR_HIGH:
+    component: "BRAKE"
+    severity: "HIGH"
+    description: "Brake wear requires inspection"
+  BRAKE_SYSTEM_CRITICAL:
+    component: "BRAKE"
+    severity: "CRITICAL"
+    description: "Critical braking-system condition"

@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "OEM-B telemetry payload v2.0",
+  "description": "Nested payload in US units (mph, miles, degrees F, g). Normalised by OEMBAdapterV2.",
+  "type": "object",
+  "required": ["vehicle", "timestamp_epoch_ms", "sequence_no", "position", "motion", "diagnostics", "events"],
+  "additionalProperties": false,
+  "properties": {
+    "vehicle": {"type": "object", "required": ["vin"], "properties": {"vin": {"type": "string", "pattern": "^[A-HJ-NPR-Z0-9]{17}$"}}},
+    "timestamp_epoch_ms": {"type": "integer", "minimum": 0},
+    "sequence_no": {"type": "integer", "minimum": 0},
+    "position": {"type": "object", "required": ["latitude", "longitude"],
+                 "properties": {"latitude": {"type": "number"}, "longitude": {"type": "number"}}},
+    "motion": {"type": "object", "required": ["speed_mph", "odometer_miles", "accel_g"],
+               "properties": {"speed_mph": {"type": "number"}, "odometer_miles": {"type": "number"}, "accel_g": {"type": "number"}}},
+    "energy": {"type": ["object", "null"],
+               "properties": {"soc_percent": {"type": ["number", "null"]}, "pack_voltage": {"type": ["number", "null"]},
+                              "pack_current": {"type": ["number", "null"]}, "pack_temp_f": {"type": ["number", "null"]},
+                              "charging": {"type": ["boolean", "null"]}}},
+    "engine": {"type": ["object", "null"],
+               "properties": {"rpm": {"type": ["number", "null"]}, "coolant_temp_f": {"type": ["number", "null"]}, "load_percent": {"type": ["number", "null"]}}},
+    "motor": {"type": ["object", "null"],
+              "properties": {"temp_f": {"type": ["number", "null"]}, "power_kw": {"type": ["number", "null"]}}},
+    "diagnostics": {"type": "object", "required": ["dtcs"], "properties": {"dtcs": {"type": "array", "items": {"type": "string"}}}},
+    "events": {"type": "array", "items": {"type": "string", "enum": ["HARSH_BRAKING", "DTC_RAISED"]}},
+    "trip_id": {"type": ["string", "null"]}
+  }
+}

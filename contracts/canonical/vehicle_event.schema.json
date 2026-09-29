@@ -1,0 +1,150 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fleetpulse.ai/schemas/canonical/vehicle_event.schema.json",
+  "title": "CanonicalVehicleEvent",
+  "description": "Standardized canonical vehicle telemetry event schema for FleetPulse platform",
+  "type": "object",
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier for this telemetry event"
+    },
+    "vehicle_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Internal UUID resolved from VIN"
+    },
+    "vin": {
+      "type": "string",
+      "minLength": 17,
+      "maxLength": 17,
+      "description": "17-character Vehicle Identification Number"
+    },
+    "oem_id": {
+      "type": "string",
+      "description": "Source OEM identifier (e.g. OEM_A)"
+    },
+    "schema_version": {
+      "type": "string",
+      "description": "Canonical schema version (e.g. 1.0)"
+    },
+    "event_ts": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 simulated vehicle timestamp"
+    },
+    "ingested_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 wall-clock ingestion timestamp"
+    },
+    "seq": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Monotonic per-vehicle sequence counter"
+    },
+    "event_type": {
+      "type": "string",
+      "enum": [
+        "TELEMETRY",
+        "DTC",
+        "MAINTENANCE_REQUIRED",
+        "FAILURE",
+        "SERVICE_COMPLETED"
+      ],
+      "description": "Classification of event"
+    },
+    "vehicle_type": {
+      "type": "string",
+      "enum": ["ICE", "EV", "HYBRID"],
+      "description": "Vehicle powertrain architecture"
+    },
+    "location": {
+      "type": "object",
+      "properties": {
+        "lat": { "type": "number", "minimum": -90.0, "maximum": 90.0 },
+        "lon": { "type": "number", "minimum": -180.0, "maximum": 180.0 }
+      },
+      "required": ["lat", "lon"],
+      "additionalProperties": false
+    },
+    "speed_kmh": {
+      "type": "number",
+      "minimum": 0.0,
+      "description": "Vehicle ground speed in km/h"
+    },
+    "odometer_km": {
+      "type": "number",
+      "minimum": 0.0,
+      "description": "Cumulative odometer reading in kilometers"
+    },
+    "acceleration_ms2": {
+      "type": "number",
+      "description": "Instantaneous longitudinal acceleration in m/s^2"
+    },
+    "battery": {
+      "type": "object",
+      "properties": {
+        "soc_pct": { "type": ["number", "null"], "minimum": 0.0, "maximum": 100.0 },
+        "voltage_v": { "type": ["number", "null"] },
+        "current_a": { "type": ["number", "null"] },
+        "temperature_c": { "type": ["number", "null"] },
+        "charging": { "type": ["boolean", "null"] }
+      },
+      "required": ["soc_pct", "voltage_v", "current_a", "temperature_c", "charging"],
+      "additionalProperties": false
+    },
+    "powertrain": {
+      "type": "object",
+      "properties": {
+        "rpm": { "type": ["number", "null"], "minimum": 0.0 },
+        "engine_temp_c": { "type": ["number", "null"] },
+        "motor_temp_c": { "type": ["number", "null"] },
+        "power_kw": { "type": ["number", "null"] },
+        "engine_load_pct": { "type": ["number", "null"], "minimum": 0.0, "maximum": 100.0 }
+      },
+      "required": ["rpm", "engine_temp_c", "motor_temp_c", "power_kw", "engine_load_pct"],
+      "additionalProperties": false
+    },
+    "brakes": {
+      "type": "object",
+      "properties": {
+        "harsh_brake": { "type": "boolean" }
+      },
+      "required": ["harsh_brake"],
+      "additionalProperties": false
+    },
+    "dtc_codes": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Array of active diagnostic trouble codes"
+    },
+    "trip_id": {
+      "type": ["string", "null"],
+      "description": "Associated trip identifier (null in Phase 1)"
+    }
+  },
+  "required": [
+    "event_id",
+    "vehicle_id",
+    "vin",
+    "oem_id",
+    "schema_version",
+    "event_ts",
+    "ingested_at",
+    "seq",
+    "event_type",
+    "vehicle_type",
+    "location",
+    "speed_kmh",
+    "odometer_km",
+    "acceleration_ms2",
+    "battery",
+    "powertrain",
+    "brakes",
+    "dtc_codes",
+    "trip_id"
+  ],
+  "additionalProperties": false
+}

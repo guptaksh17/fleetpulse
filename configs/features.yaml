@@ -1,0 +1,31 @@
+# FleetPulse feature configuration (Phase 4).
+# Windows are half-open [t - W, t): only telemetry with event_ts < t is used.
+schema_version: f1
+snapshot_interval_seconds: 3600        # simulated time, aligned to the top of the hour
+
+windows:
+  5m:  {seconds: 300,   bucket_seconds: 60}
+  1h:  {seconds: 3600,  bucket_seconds: 60}
+  24h: {seconds: 86400, bucket_seconds: 900}
+
+# Buckets are retained for (largest window using that bucket width) + retention_extra_seconds.
+retention_extra_seconds: 3600
+
+# Domain thresholds mirror the simulator's stress thresholds (simulator/population.py).
+thresholds:
+  engine_temp_high_c: 105.0            # ICE stress: engine_temp > 105 C
+  engine_load_high_pct: 80.0           # ICE stress: engine_load > 80 %
+  motor_temp_high_c: 90.0              # EV/HYBRID stress: motor_temp > 90 C
+  power_high_kw: 60.0                  # EV/HYBRID stress: power_kw > 60 kW (the simulator's "70 % of rated" constant; no rated power is configured)
+  battery_temp_high_c: 40.0            # battery stress: cell temperature > 40 C
+  deep_discharge_soc_pct: 10.0         # battery stress: SoC < 10 %
+  charging_current_a: -1.0             # charging when pack current < -1 A (current is negative while charging)
+  fast_charge_current_a: -100.0        # DC fast charge when pack current < -100 A (simulator only models 11 kW AC, about -28 A)
+  harsh_speed_kmh: 80.0                # harsh brake at or above 80 km/h
+  braking_accel_ms2: -1.0              # braking event when acceleration < -1.0 m/s2
+  moving_speed_kmh: 1.0                # moving when speed > 1 km/h
+
+# Redis streaming state
+redis:
+  key_prefix: "fs"
+  state_ttl_seconds: 604800            # wall-clock TTL refreshed on write; simulated-time retention is enforced by pruning

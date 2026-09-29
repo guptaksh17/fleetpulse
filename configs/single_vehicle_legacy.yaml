@@ -1,0 +1,22 @@
+# FleetPulse Simulator: Single-Vehicle Legacy Mode (Phase 1 & 2 Compatibility)
+population:
+  vehicles: 1
+  tenants: 1
+  fleets_per_tenant: 1
+  vehicle_types:
+    EV: 1.0
+  driving_profiles:
+    CITY: 1.0
+  oem: "OEM_A"
+  vin: "1HGCM82633A004352"
+
+clock:
+  step_seconds: 1
+  emit_interval_seconds: 1.0
+  parked_heartbeat_seconds: 900
+
+degradation:
+  scale: 0.0
+
+legacy: true
+seed: 42

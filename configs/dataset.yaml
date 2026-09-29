@@ -1,0 +1,21 @@
+# FleetPulse dataset definition (Phase 4 B7).
+dataset_version: ds-f1-l1-v1
+seed: 42                                   # used only for the deterministic vehicle holdout hash
+features_path: data/features/f1          # directory of Parquet parts written by build_features_offline.py
+simulator_config: configs/offline_train.yaml   # data start = clock.start_time, data end = start + clock.days
+output_dir: data/datasets
+horizon_days: 7
+holdout_fraction: 0.20                     # meta_vehicle_group = holdout when hash(seed, vehicle_id) % 100 < 20
+
+# Splits by prediction time t, in days relative to the data start (1-based, inclusive).
+# Day d covers t in [start + (d - 1) days, start + d days). Never split randomly.
+# Buffers (days 53-59, 69-75, 84-90) keep label horizons of one split out of the next and are excluded.
+splits:
+  train:       [1, 52]
+  calibration: [60, 64]
+  threshold:   [65, 68]
+  test:        [76, 83]
+
+guardrails:
+  min_calibration_positive_snapshots: 50
+  min_calibration_positive_events: 5
