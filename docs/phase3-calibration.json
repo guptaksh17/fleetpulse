@@ -1,0 +1,296 @@
+{
+  "config": "configs/offline_train.yaml",
+  "config_hash": "dfe84c835563bd4c402cfb5cb4dc0c79330be8ddcc06a804beb22198b81b699e",
+  "seed": 42,
+  "vehicles": 200,
+  "days": 90,
+  "start_time": "2026-01-01T00:00:00+00:00",
+  "sim_wall_seconds": 103.8,
+  "event_counts": {
+    "SERVICE_COMPLETED": 196,
+    "MAINTENANCE_REQUIRED": 186,
+    "FAILURE": 14
+  },
+  "sudden_failures": 14,
+  "sudden_ratio_pct": 7.0,
+  "component_prevalence_pct": 38.97,
+  "vehicle_prevalence_pct": 65.5,
+  "max_single_signal_auc": 0.6935,
+  "per_component": {
+    "BRAKE": {
+      "active_components": 200,
+      "trigger_events": 80,
+      "components_with_event": 76,
+      "component_prevalence_pct": 38.0,
+      "eligible_snapshots": 394932,
+      "positive_snapshots": 12680,
+      "hourly_positive_rate_pct": 3.211,
+      "signal_auc": {
+        "speed_kmh": {
+          "auc": 0.524,
+          "direction": "higher",
+          "n": 394932
+        },
+        "acceleration_ms2": {
+          "auc": 0.5003,
+          "direction": "higher",
+          "n": 394932
+        },
+        "engine_temp_c": {
+          "auc": 0.5361,
+          "direction": "higher",
+          "n": 199056
+        },
+        "motor_temp_c": {
+          "auc": 0.5765,
+          "direction": "higher",
+          "n": 203609
+        },
+        "engine_load_pct": {
+          "auc": 0.5202,
+          "direction": "higher",
+          "n": 270223
+        },
+        "rpm": {
+          "auc": 0.5202,
+          "direction": "higher",
+          "n": 270223
+        },
+        "power_kw": {
+          "auc": 0.5134,
+          "direction": "higher",
+          "n": 394932
+        },
+        "battery_temp_c": {
+          "auc": 0.5207,
+          "direction": "higher",
+          "n": 394932
+        },
+        "voltage_v": {
+          "auc": 0.5249,
+          "direction": "lower",
+          "n": 394932
+        },
+        "current_a": {
+          "auc": 0.5279,
+          "direction": "higher",
+          "n": 394932
+        },
+        "soc_pct": {
+          "auc": 0.5236,
+          "direction": "lower",
+          "n": 394932
+        },
+        "dtc_count": {
+          "auc": 0.5007,
+          "direction": "higher",
+          "n": 394932
+        }
+      }
+    },
+    "POWERTRAIN": {
+      "active_components": 200,
+      "trigger_events": 79,
+      "components_with_event": 79,
+      "component_prevalence_pct": 39.5,
+      "eligible_snapshots": 394938,
+      "positive_snapshots": 12574,
+      "hourly_positive_rate_pct": 3.184,
+      "signal_auc": {
+        "speed_kmh": {
+          "auc": 0.5231,
+          "direction": "higher",
+          "n": 394938
+        },
+        "acceleration_ms2": {
+          "auc": 0.5009,
+          "direction": "higher",
+          "n": 394938
+        },
+        "engine_temp_c": {
+          "auc": 0.6264,
+          "direction": "higher",
+          "n": 198825
+        },
+        "motor_temp_c": {
+          "auc": 0.6522,
+          "direction": "higher",
+          "n": 203868
+        },
+        "engine_load_pct": {
+          "auc": 0.5245,
+          "direction": "higher",
+          "n": 270141
+        },
+        "rpm": {
+          "auc": 0.5246,
+          "direction": "higher",
+          "n": 270141
+        },
+        "power_kw": {
+          "auc": 0.5206,
+          "direction": "higher",
+          "n": 394938
+        },
+        "battery_temp_c": {
+          "auc": 0.5351,
+          "direction": "higher",
+          "n": 394938
+        },
+        "voltage_v": {
+          "auc": 0.5685,
+          "direction": "lower",
+          "n": 394938
+        },
+        "current_a": {
+          "auc": 0.5574,
+          "direction": "higher",
+          "n": 394938
+        },
+        "soc_pct": {
+          "auc": 0.5268,
+          "direction": "lower",
+          "n": 394938
+        },
+        "dtc_count": {
+          "auc": 0.5054,
+          "direction": "lower",
+          "n": 394938
+        }
+      }
+    },
+    "BATTERY": {
+      "active_components": 103,
+      "trigger_events": 41,
+      "components_with_event": 41,
+      "component_prevalence_pct": 39.81,
+      "eligible_snapshots": 203159,
+      "positive_snapshots": 6479,
+      "hourly_positive_rate_pct": 3.189,
+      "signal_auc": {
+        "speed_kmh": {
+          "auc": 0.5016,
+          "direction": "higher",
+          "n": 203159
+        },
+        "acceleration_ms2": {
+          "auc": 0.5008,
+          "direction": "lower",
+          "n": 203159
+        },
+        "engine_temp_c": {
+          "auc": 0.527,
+          "direction": "lower",
+          "n": 7765
+        },
+        "motor_temp_c": {
+          "auc": 0.5022,
+          "direction": "lower",
+          "n": 203159
+        },
+        "engine_load_pct": {
+          "auc": 0.5091,
+          "direction": "higher",
+          "n": 78890
+        },
+        "rpm": {
+          "auc": 0.5092,
+          "direction": "higher",
+          "n": 78890
+        },
+        "power_kw": {
+          "auc": 0.5014,
+          "direction": "lower",
+          "n": 203159
+        },
+        "battery_temp_c": {
+          "auc": 0.5011,
+          "direction": "higher",
+          "n": 203159
+        },
+        "voltage_v": {
+          "auc": 0.52,
+          "direction": "lower",
+          "n": 203159
+        },
+        "current_a": {
+          "auc": 0.501,
+          "direction": "lower",
+          "n": 203159
+        },
+        "soc_pct": {
+          "auc": 0.6935,
+          "direction": "higher",
+          "n": 203159
+        },
+        "dtc_count": {
+          "auc": 0.5033,
+          "direction": "higher",
+          "n": 203159
+        }
+      }
+    }
+  },
+  "trigger_events_by_third": {
+    "days_0_30": 67,
+    "days_30_60": 76,
+    "days_60_90": 57
+  },
+  "degradation": {
+    "scale": 1.0,
+    "thresholds": {
+      "healthy_min": 75.0,
+      "degrading_min": 50.0,
+      "at_risk_min": 25.0
+    },
+    "sudden_failure_per_hour_at_risk": {
+      "BRAKE": 0.00018,
+      "POWERTRAIN": 0.00018,
+      "BATTERY": 1.5e-05
+    },
+    "base_wear_per_hour": {
+      "BRAKE": 0.05,
+      "POWERTRAIN": 0.045,
+      "BATTERY": 0.035
+    },
+    "component_scale": {
+      "BRAKE": 1.1,
+      "POWERTRAIN": 1.45,
+      "BATTERY": 0.25
+    },
+    "service_delay_hours": [
+      24.0,
+      72.0
+    ],
+    "service_recovery_factor": [
+      0.15,
+      0.25
+    ],
+    "initial_wear_min": 12.0,
+    "initial_wear_max": 74.5,
+    "wear_rate_lognormal_sigma": 0.3,
+    "effects": {
+      "brake_decel_deficit_at_full_wear": 0.35,
+      "brake_thermal_mass_loss_at_full_wear": 0.5,
+      "powertrain_temp_offset_per_wear_c": 0.25,
+      "powertrain_consumption_increase_at_full_wear": 0.15,
+      "battery_retention_loss_at_full_wear": 0.3,
+      "battery_resistance_rise_at_full_wear": 1.5
+    }
+  },
+  "checks": {
+    "max_single_signal_auc_le_0.85": true,
+    "component_prevalence_25_40": true,
+    "component_prevalence_25_40_by_type": {
+      "BRAKE": true,
+      "POWERTRAIN": true,
+      "BATTERY": true
+    },
+    "sudden_ratio_lt_15": true,
+    "hourly_positive_rate_3_8": {
+      "BRAKE": "True",
+      "POWERTRAIN": "True",
+      "BATTERY": "True"
+    }
+  }
+}
