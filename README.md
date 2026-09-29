@@ -7,7 +7,7 @@ Hackathon (Motorq case study), on simulated telemetry from **100,000 vehicles**.
 
 ![Dashboard](docs/images/ui_pulse.png)
 
-Other screens: [priority](docs/images/ui_priority.png), [vehicle](docs/images/ui_vehicle.png), [alerts](docs/images/ui_alerts.png), [assistant](docs/images/ui_assistant.png), [models](docs/images/ui_models.png), [pipeline](docs/images/ui_pipeline.png). The judge demo walkthrough is in [docs/demo-workflow.md](docs/demo-workflow.md).
+Other screens: [priority](docs/images/ui_priority.png), [vehicle](docs/images/ui_vehicle.png), [alerts](docs/images/ui_alerts.png), [assistant](docs/images/ui_assistant.png), [models](docs/images/ui_models.png), [pipeline](docs/images/ui_pipeline.png). The judge demo walkthrough is in [docs/demo-workflow.md](docs/demo-workflow.md); every feature, per role, is in [docs/user-guide.md](docs/user-guide.md).
 
 ## Results (measured; evidence in `docs/`)
 
