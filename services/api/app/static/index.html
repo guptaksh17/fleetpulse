@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FleetPulse</title>
+<style>
+  :root { --bg:#f6f7f9; --card:#fff; --ink:#1b1f24; --muted:#5f6b7a; --line:#e3e7ec; --accent:#2f5bea;
+          --hi:#c62828; --med:#e08a00; --lo:#2e7d32; }
+  * { box-sizing: border-box; }
+  body { margin:0; font:14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background:var(--bg); color:var(--ink); }
+  header { display:flex; align-items:center; justify-content:space-between; padding:12px 20px; background:var(--card); border-bottom:1px solid var(--line); }
+  header h1 { font-size:18px; margin:0; } header .who { color:var(--muted); font-size:13px; }
+  main { padding:16px 20px; max-width:1400px; margin:0 auto; }
+  .kpis { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:12px; margin-bottom:16px; }
+  .kpi { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:12px 14px; }
+  .kpi .v { font-size:24px; font-weight:600; } .kpi .l { color:var(--muted); font-size:12px; }
+  .grid { display:grid; grid-template-columns: 1.4fr 1fr; gap:16px; }
+  @media (max-width: 1000px) { .grid { grid-template-columns: 1fr; } }
+  section { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:12px 14px; overflow-x:auto; min-width:0; }
+  section h2 { font-size:15px; margin:0 0 8px; display:flex; justify-content:space-between; align-items:center; gap:8px; }
+  table { width:100%; border-collapse:collapse; } th, td { text-align:left; padding:6px 6px; border-bottom:1px solid var(--line); white-space:nowrap; }
+  th { color:var(--muted); font-weight:500; font-size:12px; } tr.row { cursor:pointer; } tr.row:hover { background:#f0f3ff; }
+  .bar { height:8px; background:#edf0f4; border-radius:4px; width:90px; display:inline-block; vertical-align:middle; }
+  .bar > span { display:block; height:100%; border-radius:4px; }
+  .tag { font-size:11px; padding:1px 6px; border-radius:10px; border:1px solid var(--line); }
+  .CRITICAL { color:#fff; background:var(--hi); border-color:var(--hi); } .HIGH { color:#fff; background:var(--med); border-color:var(--med); }
+  button, select, input { font:inherit; padding:5px 10px; border:1px solid var(--line); border-radius:6px; background:#fff; }
+  button.primary { background:var(--accent); color:#fff; border-color:var(--accent); } button:disabled { opacity:.5; }
+  #login { max-width:360px; margin:12vh auto; background:var(--card); border:1px solid var(--line); border-radius:10px; padding:24px; }
+  #login input { width:100%; margin:6px 0 12px; } .err { color:var(--hi); min-height:1.2em; }
+  #detail { margin-top:16px; } .muted { color:var(--muted); } .pager { display:flex; gap:8px; margin-top:8px; }
+  svg.spark { width:100%; height:90px; background:#fafbfc; border:1px solid var(--line); border-radius:6px; }
+</style>
+</head>
+<body>
+<div id="login">
+  <h2 style="margin-top:0">FleetPulse sign in</h2>
+  <label>Email<input id="email" autocomplete="username" value="manager@fleetpulse.local"></label>
+  <label>Password<input id="password" type="password" autocomplete="current-password"></label>
+  <div class="err" id="loginErr"></div>
+  <button class="primary" id="loginBtn">Sign in</button>
+</div>
+
+<div id="app" hidden>
+<header>
+  <h1>FleetPulse &middot; predictive maintenance</h1>
+  <div class="who"><span id="who"></span> &middot; <span id="updated" class="muted"></span> &middot; <a href="#" id="logout">Sign out</a></div>
+</header>
+<main>
+  <div class="kpis" id="kpis"></div>
+  <div class="grid">
+    <section>
+      <h2>Maintenance priority (7-day expected loss)
+        <select id="compFilter"><option value="">All components</option><option>BRAKE</option><option>POWERTRAIN</option><option>BATTERY</option></select>
+      </h2>
+      <table><thead><tr><th>#</th><th>VIN</th><th>Type</th><th>Component</th><th>P(7d)</th><th>Expected loss</th></tr></thead><tbody id="prio"></tbody></table>
+      <div class="pager"><button id="prioFirst">First page</button><button id="prioNext">Next page</button></div>
+    </section>
+    <section>
+      <h2>Active alerts <select id="srcFilter"><option value="">ML + rule</option><option>ML</option><option>RULE</option></select></h2>
+      <table><thead><tr><th>Time</th><th>VIN</th><th>Alert</th><th>Severity</th><th></th></tr></thead><tbody id="alerts"></tbody></table>
+    </section>
+  </div>
+  <section id="assistant" style="margin-top:16px">
+    <h2>Ask the fleet assistant <span class="muted" id="askMode" style="font-weight:400;font-size:12px"></span></h2>
+    <div style="display:flex;gap:8px"><input id="askQ" maxlength="500" style="flex:1" placeholder="e.g. What should I service first this week? Which batteries are at risk? Tell me about VIN ..."><button class="primary" id="askBtn">Ask</button></div>
+    <pre id="askA" style="white-space:pre-wrap;font:inherit;margin:10px 0 0" class="muted"></pre>
+  </section>
+  <section id="detail" hidden></section>
+</main>
+</div>
+
+<script>
+const API = "/api/v1";
+let token = sessionStorage.getItem("fp_token");
+// Local development only: accept a token from the URL fragment (never sent to the server) for
+// scripted screenshots. Ignored on any host other than localhost.
+if (["localhost", "127.0.0.1"].includes(location.hostname) && location.hash.startsWith("#token=")) {
+  token = decodeURIComponent(location.hash.slice(7)); sessionStorage.setItem("fp_token", token); history.replaceState(null, "", location.pathname);
+}
+let prioCursor = null, prioStack = [];
+
+async function api(path, opts = {}) {
+  const r = await fetch(API + path, { ...opts, headers: { "Content-Type": "application/json", ...(token ? { Authorization: "Bearer " + token } : {}) } });
+  if (r.status === 401) { logout(); throw new Error("unauthorised"); }
+  const body = await r.json();
+  if (!r.ok) throw new Error(body.error ? body.error.message : r.statusText);
+  return body;
+}
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+const money = v => v == null || v < 0 ? "cost data required" : "$" + Math.round(v).toLocaleString();
+const pct = p => p == null ? "-" : p >= 0.999 ? ">99.9%" : (100 * p).toFixed(1) + "%";
+function bar(p, thr) { const c = p >= thr ? "var(--hi)" : p >= thr / 2 ? "var(--med)" : "var(--lo)";
+  return `<span class="bar"><span style="width:${Math.min(100, 100 * p / Math.max(thr * 2, 0.01))}%;background:${c}"></span></span> ${pct(p)}`; }
+
+async function login() {
+  document.getElementById("loginErr").textContent = "";
+  try {
+    const r = await fetch(API + "/auth/login", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: document.getElementById("email").value, password: document.getElementById("password").value }) });
+    const b = await r.json();
+    if (!r.ok) throw new Error(b.error ? b.error.message : "login failed");
+    token = b.access_token; sessionStorage.setItem("fp_token", token); start();
+  } catch (e) { document.getElementById("loginErr").textContent = e.message; }
+}
+function logout() { token = null; sessionStorage.removeItem("fp_token"); document.getElementById("app").hidden = true; document.getElementById("login").hidden = false; }
+
+async function loadKpis() {
+  const s = await api("/summary");
+  const k = [["Vehicles", s.vehicles.toLocaleString()], ["Components scored", s.components_scored.toLocaleString()],
+             ["Above alert threshold", s.components_above_threshold], ["Expected loss, next 7 days", money(s.total_expected_loss_7d)],
+             ["Active ML alerts", s.active_ml_alerts], ["Active rule alerts", s.active_rule_alerts]];
+  document.getElementById("kpis").innerHTML = k.map(([l, v]) => `<div class="kpi"><div class="v">${esc(v)}</div><div class="l">${esc(l)}</div></div>`).join("");
+  document.getElementById("updated").textContent = "updated " + new Date().toLocaleTimeString();
+}
+async function loadPriority(cursor) {
+  const comp = document.getElementById("compFilter").value;
+  const q = new URLSearchParams({ limit: 15, ...(cursor ? { cursor } : {}), ...(comp ? { component: comp } : {}) });
+  const p = await api("/priority?" + q);
+  const offset = prioStack.length * 15;
+  document.getElementById("prio").innerHTML = p.items.map((r, i) =>
+    `<tr class="row" data-v="${esc(r.vehicle_id)}"><td>${offset + i + 1}</td><td>${esc(r.vin)}</td><td>${esc(r.vehicle_type)}</td><td>${esc(r.component)}</td><td>${bar(r.p7d, r.threshold)}</td><td>${money(r.expected_loss)}</td></tr>`).join("");
+  prioCursor = p.next_cursor; document.getElementById("prioNext").disabled = !prioCursor;
+}
+async function loadAlerts() {
+  const src = document.getElementById("srcFilter").value;
+  const a = await api("/alerts?" + new URLSearchParams({ limit: 12, ...(src ? { source: src } : {}) }));
+  document.getElementById("alerts").innerHTML = a.items.map(r =>
+    `<tr class="row" data-v="${esc(r.vehicle_id)}"><td>${new Date(r.created_at).toLocaleTimeString([], {hour: "2-digit", minute: "2-digit"})}</td><td>${esc(r.vin)}</td>
+     <td title="${esc(r.message)}">${esc(r.source === "ML" ? "7-day risk " + pct(r.risk_probability) : r.alert_type)} <span class="muted">${esc(r.component)}</span></td>
+     <td><span class="tag ${esc(r.severity)}">${esc(r.severity)}</span></td>
+     <td><button data-ack="${esc(r.alert_id)}" title="Acknowledge">Ack</button></td></tr>`).join("") || `<tr><td colspan="5" class="muted">No active alerts</td></tr>`;
+}
+function spark(rows, key, label) {
+  const pts = rows.filter(r => r[key] != null).reverse(); if (pts.length < 2) return "";
+  const vs = pts.map(r => r[key]), lo = Math.min(...vs), hi = Math.max(...vs), w = 600, h = 80;
+  const path = vs.map((v, i) => `${(i / (vs.length - 1)) * w},${h - 5 - ((v - lo) / Math.max(hi - lo, 1e-9)) * (h - 10)}`).join(" ");
+  return `<div class="muted">${esc(label)}: ${lo.toFixed(1)} to ${hi.toFixed(1)}</div><svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><polyline fill="none" stroke="var(--accent)" stroke-width="2" points="${path}"/></svg>`;
+}
+async function showVehicle(id) {
+  const [v, t] = await Promise.all([api("/vehicles/" + id), api("/vehicles/" + id + "/telemetry?limit=120")]);
+  const el = document.getElementById("detail"); el.hidden = false;
+  const comps = v.components.map(c => `<tr><td>${esc(c.component)}</td><td>${c.p7d == null ? "-" : bar(c.p7d, c.threshold)}</td><td>${money(c.expected_loss)}</td><td class="muted">${esc(c.model_version || "")}</td></tr>`).join("");
+  const hist = v.maintenance_history.slice(0, 8).map(e => `<tr><td>${new Date(e.occurred_at).toLocaleString()}</td><td>${esc(e.component)}</td><td>${esc(e.event_type)}</td><td>${e.odometer_km ?? "-"} km</td></tr>`).join("") || `<tr><td colspan="4" class="muted">No service records</td></tr>`;
+  const last = t.items[0] || {};
+  el.innerHTML = `<h2>${esc(v.vin)} &middot; ${esc(v.make)} ${esc(v.model)} (${esc(v.vehicle_type)}) <button id="closeDetail">Close</button></h2>
+    <div class="muted">Fleet ${esc(v.fleet)} &middot; odometer ${esc(v.odometer_km)} km &middot; last position ${esc(last.latitude)}, ${esc(last.longitude)}</div>
+    <div class="grid" style="margin-top:10px"><div>
+      <table><thead><tr><th>Component</th><th>P(7d)</th><th>Expected loss</th><th>Model</th></tr></thead><tbody>${comps}</tbody></table>
+      <h3 style="font-size:14px">Service history</h3><table><tbody>${hist}</tbody></table></div>
+      <div>${spark(t.items, "speed_kmh", "Speed km/h (last 120 events)")}${spark(t.items, v.vehicle_type === "ICE" ? "engine_temp_c" : "motor_temp_c", v.vehicle_type === "ICE" ? "Engine temperature C" : "Motor temperature C")}${v.vehicle_type !== "ICE" ? spark(t.items, "voltage_v", "Pack voltage V") : ""}</div></div>`;
+  document.getElementById("closeDetail").onclick = () => { el.hidden = true; };
+  el.scrollIntoView({ behavior: "smooth" });
+}
+async function refresh() { try { await Promise.all([loadKpis(), loadAlerts()]); } catch (e) { console.warn(e); } }
+async function start() {
+  document.getElementById("login").hidden = true; document.getElementById("app").hidden = false;
+  const me = await api("/me"); document.getElementById("who").textContent = `${me.email} (${me.role})`;
+  prioStack = []; await Promise.all([refresh(), loadPriority(null)]);
+}
+document.getElementById("loginBtn").onclick = login;
+document.getElementById("password").addEventListener("keydown", e => { if (e.key === "Enter") login(); });
+document.getElementById("logout").onclick = e => { e.preventDefault(); logout(); };
+document.getElementById("prioNext").onclick = () => { if (prioCursor) { prioStack.push(prioCursor); loadPriority(prioCursor); } };
+document.getElementById("prioFirst").onclick = () => { prioStack = []; loadPriority(null); };
+document.getElementById("compFilter").onchange = () => { prioStack = []; loadPriority(null); };
+document.getElementById("srcFilter").onchange = loadAlerts;
+async function ask() {
+  const q = document.getElementById("askQ").value.trim(); if (!q) return;
+  const a = document.getElementById("askA"); a.textContent = "Thinking...";
+  try {
+    const r = await api("/assistant", { method: "POST", body: JSON.stringify({ question: q }) });
+    a.textContent = r.answer;
+    document.getElementById("askMode").textContent = `(${r.mode}; tools: ${r.tools_used.map(t => t.tool).join(", ") || "none"}; ${Math.round(r.latency_ms)} ms; audited)`;
+  } catch (e) { a.textContent = e.message; }
+}
+document.getElementById("askBtn").onclick = ask;
+document.getElementById("askQ").addEventListener("keydown", e => { if (e.key === "Enter") ask(); });
+document.body.addEventListener("click", async e => {
+  const ack = e.target.closest("[data-ack]");
+  if (ack) { e.stopPropagation(); try { await api(`/alerts/${ack.dataset.ack}/acknowledge`, { method: "POST" }); refresh(); } catch (err) { alert(err.message); } return; }
+  const row = e.target.closest("tr[data-v]"); if (row) showVehicle(row.dataset.v);
+});
+setInterval(() => { if (token) refresh(); }, 2000);
+if (token) start().catch(logout);
+</script>
+</body>
+</html>
