@@ -1,0 +1,10 @@
+# GCP: same images and manifests; Cloud SQL, Confluent/Managed Kafka and Memorystore endpoints.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources: [../../base]
+patches:
+  - target: {kind: ConfigMap, name: fleetpulse-config}
+    patch: |-
+      - {op: replace, path: /data/KAFKA_BOOTSTRAP_SERVERS, value: "bootstrap.fleetpulse.asia-south1.managedkafka.goog:9092"}
+      - {op: replace, path: /data/POSTGRES_HOST, value: "10.20.0.3"}
+      - {op: replace, path: /data/REDIS_HOST, value: "10.20.0.4"}

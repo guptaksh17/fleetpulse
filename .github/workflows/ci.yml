@@ -1,0 +1,77 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+        options: --health-cmd "redis-cli ping" --health-interval 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install
+        run: pip install -r requirements-dev.txt
+      - name: Compile check
+        run: python -m compileall -q fleetpulse_features simulator ml services scripts
+      - name: Unit, integration (Redis) and algorithm tests with coverage
+        env:
+          REDIS_HOST: localhost
+        run: |
+          python -m pytest tests -q -p no:cacheprovider \
+            --cov=fleetpulse_features --cov=simulator --cov=ml --cov=services/stream-processor/stream_processor --cov=services/api/app \
+            --cov-report=term --cov-report=xml:coverage.xml --junitxml=junit.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-reports
+          path: |
+            coverage.xml
+            junit.xml
+
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: SAST (Semgrep)
+        run: pip install semgrep && semgrep scan --config p/python --config p/secrets --error --metrics=off .
+      - name: SAST (Bandit)
+        run: pip install bandit && bandit -r services ml fleetpulse_features simulator -ll -x tests
+      - name: Dependency audit (pip-audit)
+        run: |
+          pip install pip-audit
+          for r in services/api/requirements.txt services/stream-processor/requirements.txt simulator/requirements.txt; do pip-audit -r "$r"; done
+
+  images:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build images
+        run: |
+          docker build -f services/api/Dockerfile -t fleetpulse/api:ci .
+          docker build -f services/stream-processor/Dockerfile -t fleetpulse/stream-processor:ci .
+          docker build -t fleetpulse/simulator:ci simulator
+          docker build -t fleetpulse/web:ci frontend
+      - name: Image scan (Trivy)
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: fleetpulse/api:ci
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: "0"
+          format: table

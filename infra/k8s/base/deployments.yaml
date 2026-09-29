@@ -1,0 +1,147 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+  labels: {app: api}
+spec:
+  replicas: 2
+  selector: {matchLabels: {app: api}}
+  template:
+    metadata:
+      labels: {app: api}
+    spec:
+      securityContext: {runAsNonRoot: true, runAsUser: 10001, seccompProfile: {type: RuntimeDefault}}
+      containers:
+        - name: api
+          image: ghcr.io/guptaksh17/fleetpulse-api:v1.0
+          envFrom:
+            - configMapRef: {name: fleetpulse-config}
+            - secretRef: {name: fleetpulse-secrets}
+          ports: [{containerPort: 8000}]
+          resources:
+            requests: {cpu: "250m", memory: "512Mi"}
+            limits: {cpu: "1", memory: "1Gi"}
+          securityContext: {allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: {drop: ["ALL"]}}
+          readinessProbe: {httpGet: {path: /healthz, port: 8000}, periodSeconds: 5}
+          livenessProbe: {httpGet: {path: /healthz, port: 8000}, periodSeconds: 10, failureThreshold: 6}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: scorer
+  labels: {app: scorer}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: scorer}}
+  template:
+    metadata:
+      labels: {app: scorer}
+    spec:
+      securityContext: {runAsNonRoot: true, runAsUser: 10001, seccompProfile: {type: RuntimeDefault}}
+      containers:
+        - name: scorer
+          image: ghcr.io/guptaksh17/fleetpulse-api:v1.0
+          command: ["python", "-m", "ml.score", "live", "--models", "/models/m1"]
+          envFrom:
+            - configMapRef: {name: fleetpulse-config}
+            - secretRef: {name: fleetpulse-secrets}
+          resources:
+            requests: {cpu: "250m", memory: "512Mi"}
+            limits: {cpu: "1", memory: "1Gi"}
+          securityContext: {allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: {drop: ["ALL"]}}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stream-processor
+  labels: {app: stream-processor}
+spec:
+  replicas: 3
+  selector: {matchLabels: {app: stream-processor}}
+  template:
+    metadata:
+      labels: {app: stream-processor}
+    spec:
+      securityContext: {runAsNonRoot: true, runAsUser: 10001, seccompProfile: {type: RuntimeDefault}}
+      containers:
+        - name: stream-processor
+          image: ghcr.io/guptaksh17/fleetpulse-stream-processor:v1.0
+          envFrom:
+            - configMapRef: {name: fleetpulse-config}
+            - secretRef: {name: fleetpulse-secrets}
+          resources:
+            requests: {cpu: "500m", memory: "1Gi"}
+            limits: {cpu: "2", memory: "2Gi"}
+          securityContext: {allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: {drop: ["ALL"]}}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rule-engine
+  labels: {app: rule-engine}
+spec:
+  replicas: 3
+  selector: {matchLabels: {app: rule-engine}}
+  template:
+    metadata:
+      labels: {app: rule-engine}
+    spec:
+      securityContext: {runAsNonRoot: true, runAsUser: 10001, seccompProfile: {type: RuntimeDefault}}
+      containers:
+        - name: rule-engine
+          image: ghcr.io/guptaksh17/fleetpulse-rule-engine:v1.0
+          envFrom:
+            - configMapRef: {name: fleetpulse-config}
+            - secretRef: {name: fleetpulse-secrets}
+          resources:
+            requests: {cpu: "250m", memory: "256Mi"}
+            limits: {cpu: "1", memory: "512Mi"}
+          securityContext: {allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: {drop: ["ALL"]}}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: normalization
+  labels: {app: normalization}
+spec:
+  replicas: 3
+  selector: {matchLabels: {app: normalization}}
+  template:
+    metadata:
+      labels: {app: normalization}
+    spec:
+      securityContext: {runAsNonRoot: true, runAsUser: 10001, seccompProfile: {type: RuntimeDefault}}
+      containers:
+        - name: normalization
+          image: ghcr.io/guptaksh17/fleetpulse-normalization:v1.0
+          envFrom:
+            - configMapRef: {name: fleetpulse-config}
+            - secretRef: {name: fleetpulse-secrets}
+          resources:
+            requests: {cpu: "250m", memory: "256Mi"}
+            limits: {cpu: "1", memory: "512Mi"}
+          securityContext: {allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: {drop: ["ALL"]}}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: identity-resolver
+  labels: {app: identity-resolver}
+spec:
+  replicas: 3
+  selector: {matchLabels: {app: identity-resolver}}
+  template:
+    metadata:
+      labels: {app: identity-resolver}
+    spec:
+      securityContext: {runAsNonRoot: true, runAsUser: 10001, seccompProfile: {type: RuntimeDefault}}
+      containers:
+        - name: identity-resolver
+          image: ghcr.io/guptaksh17/fleetpulse-identity-resolver:v1.0
+          envFrom:
+            - configMapRef: {name: fleetpulse-config}
+            - secretRef: {name: fleetpulse-secrets}
+          resources:
+            requests: {cpu: "250m", memory: "256Mi"}
+            limits: {cpu: "1", memory: "512Mi"}
+          securityContext: {allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: {drop: ["ALL"]}}

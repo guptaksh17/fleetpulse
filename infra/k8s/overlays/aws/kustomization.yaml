@@ -1,0 +1,10 @@
+# AWS: endpoints come from terraform outputs (RDS, MSK, ElastiCache). Only configuration differs.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources: [../../base]
+patches:
+  - target: {kind: ConfigMap, name: fleetpulse-config}
+    patch: |-
+      - {op: replace, path: /data/KAFKA_BOOTSTRAP_SERVERS, value: "b-1.fleetpulse.kafka.ap-south-1.amazonaws.com:9094"}
+      - {op: replace, path: /data/POSTGRES_HOST, value: "fleetpulse-pg.ap-south-1.rds.amazonaws.com"}
+      - {op: replace, path: /data/REDIS_HOST, value: "fleetpulse-redis.ap-south-1.cache.amazonaws.com"}

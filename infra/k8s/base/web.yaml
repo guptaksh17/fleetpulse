@@ -1,0 +1,50 @@
+# Next.js dashboard. Built with API_URL=http://api (in-cluster service), so /api/v1 is proxied server-side.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+spec:
+  replicas: 2
+  selector: {matchLabels: {app: web}}
+  template:
+    metadata: {labels: {app: web}}
+    spec:
+      securityContext: {runAsNonRoot: true, runAsUser: 1000}
+      containers:
+        - name: web
+          image: ghcr.io/guptaksh17/fleetpulse-web:v1.0
+          ports: [{containerPort: 3000}]
+          readinessProbe: {httpGet: {path: /login, port: 3000}, periodSeconds: 10}
+          resources:
+            requests: {cpu: 100m, memory: 128Mi}
+            limits: {cpu: 500m, memory: 512Mi}
+          securityContext: {allowPrivilegeEscalation: false, capabilities: {drop: [ALL]}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web
+spec:
+  selector: {app: web}
+  ports: [{port: 80, targetPort: 3000}]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress-to-web
+spec:
+  podSelector: {matchLabels: {app: web}}
+  ingress:
+    - from: [{namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: ingress-nginx}}}]
+      ports: [{port: 3000}]
+---
+# The dashboard proxies /api/v1 to the API from inside the cluster.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-web-to-api
+spec:
+  podSelector: {matchLabels: {app: api}}
+  ingress:
+    - from: [{podSelector: {matchLabels: {app: web}}}]
+      ports: [{port: 8000}]

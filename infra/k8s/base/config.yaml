@@ -1,0 +1,36 @@
+# Endpoints of the managed data services. Overlays replace these per cloud; images and code are identical.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fleetpulse-config
+data:
+  KAFKA_BOOTSTRAP_SERVERS: "kafka.fleetpulse-data.svc:9092"
+  POSTGRES_HOST: "postgres.fleetpulse-data.svc"
+  POSTGRES_PORT: "5432"
+  TIMESCALE_HOST: "timescaledb.fleetpulse-data.svc"
+  TIMESCALE_PORT: "5432"
+  REDIS_HOST: "redis.fleetpulse-data.svc"
+  REDIS_PORT: "6379"
+  FEATURES_ENABLED: "true"
+  RATE_LIMIT_PER_MINUTE: "300"
+---
+# Secret values are injected by External Secrets from the cloud secret manager (AWS Secrets Manager /
+# GCP Secret Manager); nothing secret is stored in git.
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: fleetpulse-secrets
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    name: cloud-secret-store
+    kind: ClusterSecretStore
+  target:
+    name: fleetpulse-secrets
+  data:
+    - secretKey: JWT_SECRET
+      remoteRef: { key: fleetpulse/jwt-secret }
+    - secretKey: POSTGRES_PASSWORD
+      remoteRef: { key: fleetpulse/postgres-password }
+    - secretKey: TIMESCALE_PASSWORD
+      remoteRef: { key: fleetpulse/timescale-password }
