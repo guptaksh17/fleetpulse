@@ -57,6 +57,7 @@ function AlertsInner() {
             </tbody>
           </table>
         </div>
+        {canAck && status !== "ACTIVE" && <p className="text-[11px] text-muted-foreground mt-3">Only ACTIVE alerts can be acknowledged. Switch the filter to ACTIVE.</p>}
         {!canAck && <p className="text-[11px] text-muted-foreground mt-3">Your role ({me?.role}) can view alerts but not acknowledge them.</p>}
       </Panel>
     </div>

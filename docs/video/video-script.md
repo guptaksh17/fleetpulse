@@ -118,12 +118,14 @@ Click the top POWERTRAIN VIN (a diesel van).
 > *(optional)* Battery shows n/a, because we never score a part a vehicle doesn't have.
 
 ### 2:35-2:55 · Live alert
-The toast should pop up now, about 60 s after launch. Click **Alerts**, then **Acknowledge** on
-the new `DTC_BRAKE_SYSTEM_CRITICAL` row.
+The toast pops up about 60 s after launch: **DTC_BRAKE_SYSTEM_CRITICAL on 1HGCM8267MA500000**,
+with **Open** and **Acknowledge** buttons. It stays on screen for 20 s. Click **Acknowledge** on
+the toast. The Alerts page and the *Live alerts* panel on Pulse (**Ack**) work too. A few
+powertrain risk toasts may follow; that is the scorer re-scoring the live vehicles.
 > And there it is: the brake fault from the live stream, raised as an alert within seconds by a
-> rule engine that doesn't wait for any ML. Alex acknowledges it so the team doesn't handle it
-> twice. Twenty percent of those messages were deliberate duplicates, and every one was
-> dropped.
+> rule engine that doesn't wait for any ML. Alex acknowledges it right from the notification,
+> so the team doesn't handle it twice. Twenty percent of those messages were deliberate
+> duplicates, and every one was dropped.
 
 If the toast is late, keep talking on the Alerts page. You have until about 2 minutes after
 launch before the script clears the alert.

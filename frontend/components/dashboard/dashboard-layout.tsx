@@ -7,12 +7,15 @@ import { Menu, Search } from "lucide-react"
 import { toast } from "sonner"
 import { Sidebar } from "./sidebar"
 import { CommandSearch, useCommandSearch } from "./command-search"
-import { AuthProvider } from "@/context/auth-context"
+import { AuthProvider, useAuth } from "@/context/auth-context"
 import { api, fmtPct, getToken, type Alert, type Page } from "@/lib/api"
 
 /** Pops a toast for every new ACTIVE alert (rule DTC alerts and ML risk alerts) while any page is open. */
 function LiveAlertToaster() {
   const seen = useRef<Set<string> | null>(null)
+  const { me } = useAuth()
+  const canAck = useRef(false)
+  canAck.current = me?.role === "ADMIN" || me?.role === "FLEET_MANAGER"
   useEffect(() => {
     const tick = async () => {
       if (!getToken()) return
@@ -24,7 +27,14 @@ function LiveAlertToaster() {
           seen.current.add(a.alert_id)
           const title = a.source === "RULE" ? `${a.alert_type} on ${a.vin}` : `${a.component} risk ${fmtPct(a.risk_probability)} on ${a.vin}`
           const fn = a.severity === "CRITICAL" ? toast.error : toast.warning
-          fn(title, { description: a.message, action: { label: "Open", onClick: () => (window.location.href = `/vehicles/${a.vehicle_id}`) } })
+          const open = { label: "Open", onClick: () => (window.location.href = `/vehicles/${a.vehicle_id}`) }
+          const ack = {
+            label: "Acknowledge",
+            onClick: () => api(`/alerts/${a.alert_id}/acknowledge`, { method: "POST" })
+              .then(() => toast.success("Alert acknowledged (audited)"))
+              .catch((e) => toast.error(e instanceof Error ? e.message : "Failed")),
+          }
+          fn(title, { description: a.message, duration: 20000, ...(canAck.current ? { action: ack, cancel: open } : { action: open }) })
         }
       } catch { /* the page shows its own errors */ }
     }

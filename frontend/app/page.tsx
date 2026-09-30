@@ -6,6 +6,9 @@ import { DashboardLayout } from "@/components/dashboard/dashboard-layout"
 import { GlanceCard } from "@/components/dashboard/glance-card"
 import { ComponentTag, ErrorLine, PageHeader, Panel, RiskBar, SeverityBadge } from "@/components/dashboard/fleet-ui"
 import { usePoll } from "@/hooks/use-poll"
+import { toast } from "sonner"
+import { Button } from "@/components/ui/button"
+import { useAuth } from "@/context/auth-context"
 import { api, fmtCompact, fmtMoney, fmtPct, type Alert, type Page, type PriorityItem, type RiskBreakdown, type Summary } from "@/lib/api"
 
 const BUCKETS: [keyof RiskBreakdown, string, string][] = [
@@ -24,6 +27,12 @@ function PulseInner() {
   const alerts = usePoll(() => api<Page<Alert>>("/alerts?limit=8"), 2000)
   const composition = usePoll(() => api<{ items: { vehicle_type: string; oem_id: string; vehicles: number }[] }>("/fleet/composition"), 30000)
   const s = summary.data
+  const { me } = useAuth()
+  const canAck = me?.role === "ADMIN" || me?.role === "FLEET_MANAGER"
+  const ack = async (id: string) => {
+    try { await api(`/alerts/${id}/acknowledge`, { method: "POST" }); toast.success("Alert acknowledged (audited)"); alerts.reload() }
+    catch (e) { toast.error(e instanceof Error ? e.message : "Failed") }
+  }
 
   const riskChart = (breakdown.data?.items || []).map((r) => ({ component: r.component, ...Object.fromEntries(BUCKETS.map(([k]) => [k, r[k]])) }))
   const lossChart = (breakdown.data?.items || []).map((r) => ({ component: r.component, loss: r.expected_loss, alerts: r.above_threshold }))
@@ -114,6 +123,7 @@ function PulseInner() {
                     <p className="text-xs text-muted-foreground truncate">{a.source === "ML" ? `${a.component} risk ${fmtPct(a.risk_probability)}` : a.alert_type}</p>
                   </div>
                   <span className="text-[10px] font-mono text-muted-foreground">{new Date(a.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+                  {canAck && <Button size="sm" variant="outline" className="bg-transparent h-6 px-2 text-[10px]" onClick={(e) => { e.preventDefault(); e.stopPropagation(); ack(a.alert_id) }}>Ack</Button>}
                 </Link>
               ))}
               {alerts.data && alerts.data.items.length === 0 && <p className="text-xs text-muted-foreground">No active alerts.</p>}
