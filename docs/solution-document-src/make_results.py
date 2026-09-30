@@ -31,11 +31,11 @@ rule_latency = sys.argv[1] if len(sys.argv) > 1 else "see verification log"
 snap = sys.argv[2] if len(sys.argv) > 2 else "n/a"
 
 res = {
-    "team_name": "[Team name]",
-    "team_members": "[Name - role - email, for each member]",
-    "repo_url": "https://github.com/guptaksh17/motorq",
-    "video_url": "[Video link]",
-    "date": "29/09/2026",
+    "team_name": "Kshitij Gupta",
+    "team_members": "Kshitij Gupta (kg0237@srmist.edu.in)",
+    "repo_url": "https://github.com/guptaksh17/fleetpulse",
+    "video_url": "https://www.youtube.com/watch?v=g7IFX9hf6rQ",
+    "date": "01/10/2026",
     "n_tests": 95,
     "fleet100k_rows": "7,626,000",
     "pt_prauc": f"{sel('POWERTRAIN')['test']['pr_auc']:.2f}", "pt_prev": f"{sel('POWERTRAIN')['test']['prevalence']:.3f}",
