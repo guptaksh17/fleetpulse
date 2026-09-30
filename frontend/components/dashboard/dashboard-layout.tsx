@@ -10,7 +10,7 @@ import { CommandSearch, useCommandSearch } from "./command-search"
 import { AuthProvider, useAuth } from "@/context/auth-context"
 import { api, fmtPct, getToken, type Alert, type Page } from "@/lib/api"
 
-/** Pops a toast for every new ACTIVE alert (rule DTC alerts and ML risk alerts) while any page is open. */
+/** Pops a toast for new urgent alerts: every RULE (DTC fault) alert and CRITICAL ML alerts. Other ML alerts are only listed on the Alerts page. */
 function LiveAlertToaster() {
   const seen = useRef<Set<string> | null>(null)
   const { me } = useAuth()
@@ -25,6 +25,7 @@ function LiveAlertToaster() {
         for (const a of page.items.slice().reverse()) {
           if (seen.current.has(a.alert_id)) continue
           seen.current.add(a.alert_id)
+          if (a.source !== "RULE" && a.severity !== "CRITICAL") continue
           const title = a.source === "RULE" ? `${a.alert_type} on ${a.vin}` : `${a.component} risk ${fmtPct(a.risk_probability)} on ${a.vin}`
           const fn = a.severity === "CRITICAL" ? toast.error : toast.warning
           const open = { label: "Open", onClick: () => (window.location.href = `/vehicles/${a.vehicle_id}`) }

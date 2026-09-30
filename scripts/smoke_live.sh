@@ -98,12 +98,12 @@ pass "no duplicate (vehicle_id, seq) rows"
 [ "$DROP_DELTA" -gt 0 ] || fail "expected injected duplicates to be dropped (duplicates_dropped delta = 0)"
 pass "Phase 2 dedup invariant holds: ${PUBLISHED} - ${NEW_DISTINCT} = ${DROP_DELTA}"
 
-ALERTS=$(psql_pg "SELECT count(*) FROM alert WHERE vehicle_component_id = '${INJ_BRAKE}' AND alert_type = 'DTC_${DTC}' AND status = 'ACTIVE'")
-[ "$ALERTS" -eq 1 ] || fail "expected exactly 1 ACTIVE DTC_${DTC} alert for the injected vehicle, found ${ALERTS}"
-ALERT_ID=$(psql_pg "SELECT alert_id FROM alert WHERE vehicle_component_id = '${INJ_BRAKE}' AND alert_type = 'DTC_${DTC}' AND status = 'ACTIVE'")
+ALERTS=$(psql_pg "SELECT count(*) FROM alert WHERE vehicle_component_id = '${INJ_BRAKE}' AND alert_type = 'DTC_${DTC}' AND status IN ('ACTIVE', 'ACKNOWLEDGED')")
+[ "$ALERTS" -eq 1 ] || fail "expected exactly 1 open (ACTIVE or ACKNOWLEDGED) DTC_${DTC} alert for the injected vehicle, found ${ALERTS}"
+ALERT_ID=$(psql_pg "SELECT alert_id FROM alert WHERE vehicle_component_id = '${INJ_BRAKE}' AND alert_type = 'DTC_${DTC}' AND status IN ('ACTIVE', 'ACKNOWLEDGED')")
 AUDITS=$(psql_pg "SELECT count(*) FROM audit_log WHERE entity_id = '${ALERT_ID}' AND action = 'ALERT_CREATED'")
 [ "$AUDITS" -eq 1 ] || fail "expected exactly 1 audit row for alert ${ALERT_ID}, found ${AUDITS}"
-pass "injected DTC raised exactly one ACTIVE alert (${ALERT_ID}) with one audit row"
+pass "injected DTC raised exactly one alert (${ALERT_ID}, acknowledging it during the run is fine) with one audit row"
 
 FEATURE_ROWS=$(psql_ts "SELECT count(*) FROM component_features WHERE vehicle_id IN (${VID_LIST})")
 echo "[INFO] component_features rows for smoke vehicles: ${FEATURE_ROWS}"

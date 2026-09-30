@@ -5,9 +5,9 @@ Helper for live verification runs (smoke_live.sh, verify_phase4.sh).
   ids      print the population's vehicle ids and component ids as JSON
   reset    make a live run repeatable: delete the vehicles' telemetry and feature snapshots
            (optionally only from --after onwards), their maintenance events and trips from
-           --after onwards, resolve their ACTIVE alerts, and delete their Redis dedup and
+           --after onwards, resolve their open (ACTIVE or ACKNOWLEDGED) alerts, and delete their Redis dedup and
            feature-state keys
-  resolve  resolve the vehicles' ACTIVE alerts (cleanup after a run, so the global alert
+  resolve  resolve the vehicles' open alerts (cleanup after a run, so the global alert
            counts checked by verify_phase2.sh are not affected)
 
 Only the listed test vehicles are touched.
@@ -37,7 +37,7 @@ def resolve_alerts(pg, vids):
     with pg.cursor() as cur:
         cur.execute(
             """UPDATE alert SET status = 'RESOLVED'
-               WHERE status = 'ACTIVE' AND vehicle_component_id IN
+               WHERE status IN ('ACTIVE', 'ACKNOWLEDGED') AND vehicle_component_id IN
                  (SELECT vehicle_component_id FROM vehicle_component WHERE vehicle_id = ANY(%s::uuid[]))""",
             (vids,),
         )
