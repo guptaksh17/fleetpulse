@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FleetPulse Video Slides</title>
+<style>
+  :root { --bg:#050505; --card:#0d0d0d; --border:#222; --fg:#f4f4f4; --muted:#8a8a8a; --lime:#ccff00; --red:#ff3b3b; --cyan:#00ffd1; --amber:#ffb800; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  html, body { height:100%; background:var(--bg); color:var(--fg); font-family:-apple-system, "Inter", "Helvetica Neue", Arial, sans-serif; overflow:hidden; }
+  .mono { font-family:"SF Mono", Menlo, Consolas, monospace; }
+  .slide { position:absolute; inset:0; display:none; flex-direction:column; justify-content:center; padding:6vh 8vw; }
+  .slide.on { display:flex; }
+  .eyebrow { font-family:"SF Mono", Menlo, monospace; font-size:1.4vw; letter-spacing:.2em; text-transform:uppercase; color:var(--muted); display:flex; align-items:center; gap:1vw; margin-bottom:3vh; }
+  .eyebrow::before { content:""; width:1vw; height:1vw; background:var(--lime); }
+  h1 { font-size:7vw; font-weight:700; letter-spacing:-.03em; line-height:1; }
+  h2 { font-size:4vw; font-weight:700; letter-spacing:-.02em; line-height:1.1; margin-bottom:5vh; }
+  .lead { font-size:2.2vw; color:#cfcfcf; margin-top:3vh; max-width:70vw; line-height:1.35; }
+  .lime { color:var(--lime); }
+  .logo { display:inline-flex; align-items:center; justify-content:center; width:5vw; height:5vw; background:var(--lime); color:#000; font-weight:800; font-size:2.6vw; margin-bottom:4vh; }
+  .grid { display:grid; gap:1.5vw; }
+  .g3 { grid-template-columns:repeat(3, 1fr); }
+  .g4 { grid-template-columns:repeat(4, 1fr); }
+  .card { background:var(--card); border:1px solid var(--border); padding:2.6vh 1.6vw; }
+  .card .k { font-family:"SF Mono", Menlo, monospace; font-size:1vw; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); margin-bottom:1.4vh; }
+  .card .v { font-family:"SF Mono", Menlo, monospace; font-size:3.2vw; font-weight:700; letter-spacing:-.04em; }
+  .card .s { font-size:1.15vw; color:var(--muted); margin-top:1vh; line-height:1.35; }
+  .card p { font-size:1.6vw; line-height:1.4; color:#dcdcdc; }
+  .flow { display:flex; flex-wrap:wrap; align-items:center; gap:1vw 0.8vw; }
+  .box { border:1px solid var(--border); background:var(--card); padding:1.6vh 1.2vw; font-family:"SF Mono", Menlo, monospace; font-size:1.2vw; }
+  .box b { display:block; font-family:-apple-system, "Inter", sans-serif; font-size:1.45vw; margin-bottom:.6vh; }
+  .box span { color:var(--muted); }
+  .box.hl { border-color:var(--lime); }
+  .arrow { color:var(--lime); font-size:1.8vw; }
+  .foot { position:absolute; left:8vw; right:8vw; bottom:4vh; display:flex; justify-content:space-between; font-family:"SF Mono", Menlo, monospace; font-size:1vw; color:#555; }
+  .hint { position:fixed; right:1.5vw; bottom:1.2vh; font:0.8vw "SF Mono", Menlo, monospace; color:#333; }
+  .red { color:var(--red); } .cyan { color:var(--cyan); } .amber { color:var(--amber); }
+  ul.clean { list-style:none; }
+  ul.clean li { font-size:1.9vw; padding:1.4vh 0; border-bottom:1px solid var(--border); display:flex; gap:1.5vw; }
+  ul.clean li .mono { color:var(--lime); min-width:3vw; }
+</style>
+</head>
+<body>
+
+<!-- 1. Title -->
+<section class="slide on">
+  <div class="logo">F</div>
+  <h1>FleetPulse</h1>
+  <p class="lead">Predicts which brake, powertrain or battery will need service in the <span class="lime">next 7 days</span>, prices the risk in dollars, and tells the fleet manager what to fix first.</p>
+  <div class="foot"><span>Connected Vehicle Intelligence Hackathon · Motorq</span><span>[Team name]</span></div>
+</section>
+
+<!-- 2. Problem -->
+<section class="slide">
+  <div class="eyebrow">The problem</div>
+  <h2>Fleets find out about failures<br>when the truck stops.</h2>
+  <div class="grid g3">
+    <div class="card"><div class="k">Unplanned</div><p>A roadside breakdown means a tow, an emergency repair and a lost delivery day.</p></div>
+    <div class="card"><div class="k">Calendar-based</div><p>Scheduled service sends healthy vehicles to the workshop and misses failing ones.</p></div>
+    <div class="card"><div class="k">Limited slots</div><p>Workshops have fixed capacity. The question is not "what is wrong" but "what should we fix first".</p></div>
+  </div>
+</section>
+
+<!-- 3. Architecture -->
+<section class="slide">
+  <div class="eyebrow">How it works</div>
+  <h2>From raw telemetry to a dollar-ranked queue</h2>
+  <div class="flow">
+    <div class="box"><b>100K vehicles</b><span>OEM-A + OEM-B</span></div><div class="arrow">→</div>
+    <div class="box"><b>Kafka</b><span>at-least-once</span></div><div class="arrow">→</div>
+    <div class="box"><b>Identity resolver</b><span>VIN check, DLQ</span></div><div class="arrow">→</div>
+    <div class="box"><b>Normalizer</b><span>adapter per OEM</span></div><div class="arrow">→</div>
+    <div class="box hl"><b>Stream processor</b><span>dedup · 5m/1h/24h windows</span></div><div class="arrow">→</div>
+    <div class="box hl"><b>Risk scorer</b><span>calibrated P(7d) × $ cost</span></div><div class="arrow">→</div>
+    <div class="box"><b>Secure API</b><span>JWT · roles · tenants · audit</span></div><div class="arrow">→</div>
+    <div class="box"><b>Dashboard + AI assistant</b><span>Next.js · Groq tool-calling</span></div>
+  </div>
+  <div class="grid g3" style="margin-top:5vh">
+    <div class="card"><div class="k">Stores</div><p>PostgreSQL for business state, TimescaleDB for telemetry, Redis for dedup and live windows.</p></div>
+    <div class="card"><div class="k">Rule engine</div><p>Fault codes become alerts in milliseconds, independent of the ML path.</p></div>
+    <div class="card"><div class="k">Deploy anywhere</div><p>Docker Compose locally; Terraform and Kubernetes for AWS and GCP.</p></div>
+  </div>
+</section>
+
+<!-- 4. Results -->
+<section class="slide">
+  <div class="eyebrow">Measured results</div>
+  <h2>Every number has evidence in the repo</h2>
+  <div class="grid g4">
+    <div class="card"><div class="k">Scale</div><div class="v">100K</div><div class="s">vehicles, 300K components, 7.6M telemetry rows</div></div>
+    <div class="card"><div class="k">Freshness</div><div class="v">1.7 s</div><div class="s">from ingest to calibrated risk (p50)</div></div>
+    <div class="card"><div class="k">API latency</div><div class="v">116 ms</div><div class="s">p95 under load, target 200 ms</div></div>
+    <div class="card"><div class="k">Duplicates</div><div class="v lime">0</div><div class="s">after killing the Kafka broker for 39 s</div></div>
+    <div class="card"><div class="k">Powertrain</div><div class="v">21×</div><div class="s">better than chance (PR-AUC 0.73 vs 0.034)</div></div>
+    <div class="card"><div class="k">Top 1% precision</div><div class="v">96%</div><div class="s">of flagged powertrains really need service</div></div>
+    <div class="card"><div class="k">Feature parity</div><div class="v">803K</div><div class="s">values, streaming = offline, 0 mismatches</div></div>
+    <div class="card"><div class="k">Tests</div><div class="v">95</div><div class="s">automated, plus Semgrep, Bandit, pip-audit, Trivy in CI</div></div>
+  </div>
+</section>
+
+<!-- 5. Close -->
+<section class="slide">
+  <div class="logo">F</div>
+  <h1>FleetPulse</h1>
+  <ul class="clean" style="margin-top:5vh; max-width:70vw">
+    <li><span class="mono">01</span>Calibrated 7-day risk for every component, priced in dollars</li>
+    <li><span class="mono">02</span>Real-time alerts in seconds, exactly-once on an at-least-once pipeline</li>
+    <li><span class="mono">03</span>Secure multi-tenant API, audit log, and an AI assistant that cannot leak data</li>
+  </ul>
+  <div class="foot"><span>github.com/guptaksh17/fleetpulse</span><span>[Team name] · thank you</span></div>
+</section>
+
+<div class="hint">← → to navigate · F for full screen</div>
+<script>
+  const slides = [...document.querySelectorAll(".slide")];
+  let i = 0;
+  const show = (n) => { i = Math.max(0, Math.min(slides.length - 1, n)); slides.forEach((s, k) => s.classList.toggle("on", k === i)); };
+  document.addEventListener("keydown", (e) => {
+    document.querySelector(".hint").style.display = "none";
+    if (["ArrowRight", "PageDown", " "].includes(e.key)) show(i + 1);
+    if (["ArrowLeft", "PageUp"].includes(e.key)) show(i - 1);
+    if (e.key === "f" || e.key === "F") document.documentElement.requestFullscreen?.();
+  });
+  document.addEventListener("click", () => show(i + 1));
+  show((parseInt(location.hash.slice(1), 10) || 1) - 1);
+</script>
+</body>
+</html>

@@ -47,8 +47,13 @@ echo "==> Stopping the long-running legacy simulator (verify_phase2.sh leaves it
 docker compose stop simulator >/dev/null 2>&1 || true
 
 echo "==> Starting pipeline services"
-docker compose up -d --build kafka kafka-init redis postgres timescaledb identity-resolver normalization rule-engine stream-processor >/dev/null
-docker compose build simulator >/dev/null
+# SMOKE_SKIP_BUILD=1 reuses the running stack and existing images (fast, for live demos).
+if [ "${SMOKE_SKIP_BUILD:-0}" = "1" ]; then
+    docker compose start redis postgres timescaledb kafka identity-resolver normalization rule-engine stream-processor >/dev/null
+else
+    docker compose up -d --build kafka kafka-init redis postgres timescaledb identity-resolver normalization rule-engine stream-processor >/dev/null
+    docker compose build simulator >/dev/null
+fi
 until curl -s http://localhost:8080/metrics >/dev/null; do sleep 2; done
 
 echo "==> Seeding and resetting the ${VEHICLES} smoke-test vehicles"
